@@ -22,7 +22,7 @@ class Person:
         self.patterns.append(re.compile("n\=.*\)"))
 
     def add_file(self, filename):
-        if "/venv/" not in filename:
+        if "/venv/" not in filename and "MACOSX" not in filename:
             self.files.append(filename)
 
     def generate_ast(self):
