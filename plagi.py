@@ -4,6 +4,7 @@ import pathlib
 import ast
 from collections import defaultdict
 import re
+import syntaxtree
 
 IDENTICAL_LIMIT = 0.0001
 SIMILARITY_LIMIT = 0.2
@@ -12,7 +13,7 @@ class Person:
     def __init__(self, name):
         self.name = name
         self.files = []
-        self.asts = []
+        self.asts = syntaxtree.SyntaxTree("")
         self.manual_flag = False
         self.error_log = []
         self.others = {}
@@ -28,38 +29,15 @@ class Person:
     def generate_ast(self):
         for f in self.files:
             try:
-                with open(f) as cur_file:
-                    self.asts.append(ast.parse(cur_file.read(), filename=f))
+                self.asts += syntaxtree.generate_ast_py(f)
             except Exception as e:
                 print(e)
                 self.manual_flag = True
                 self.error_log.append(e)
 
-    def combine_ast(self):
-        text = defaultdict(int)
-        for element in self.asts:
-            for sub_element in ast.walk(element):
-                t = ast.dump(sub_element)
-                for pattern in self.patterns:
-                    t = re.sub(pattern, "", t)
-                text[t] = 1
-        self.operations = text
-        self.operation_count = sum(self.operations.values())
 
     def compare_other(self, other):
-        ''' returns a originality value, closer to 0 = less original '''
-        difference = 0
-        for key in self.operations:
-            if key not in other.operations:
-                difference += 1
-        for key in other.operations:
-            if key not in self.operations:
-                difference += 1
-        total_difference = (difference/max(self.operation_count,1))
-        self.others[other.name] = total_difference
-        #other.others[self.name] = total_difference
-
-        return difference/max(self.operation_count,1)
+        return self.asts.compare(other.asts, 1, 2)
 
     def get_summary(self):
         if self.manual_flag:
@@ -94,8 +72,6 @@ if __name__ == "__main__":
         num += 1
     print("Generated ASTs")
 
-    for name in names:
-        names[name].combine_ast()
 
     for i in range(len(names)):
         name = list(names.keys())[i]
