@@ -89,7 +89,7 @@ class SyntaxTree:
                 diff += abs(my_nodes[key] - other_nodes[key])
 
         total_subgraphs = sum([my_nodes[k] for k in my_nodes])
-        return 1 - (diff / total_subgraphs)
+        return (diff / total_subgraphs)
 
             
 

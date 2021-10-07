@@ -7,7 +7,7 @@ import re
 import syntaxtree
 
 IDENTICAL_LIMIT = 0.0001
-SIMILARITY_LIMIT = 0.2
+SIMILARITY_LIMIT = 0.4
 
 class Person:
     def __init__(self, name):
@@ -37,7 +37,9 @@ class Person:
 
 
     def compare_other(self, other):
-        return self.asts.compare(other.asts, 1, 2)
+        res = self.asts.compare(other.asts, 1, 2)
+        self.others[other.name] = res
+        return res
 
     def get_summary(self):
         if self.manual_flag:
