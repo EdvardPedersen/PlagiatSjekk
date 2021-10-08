@@ -5,9 +5,11 @@ import ast
 from collections import defaultdict
 import re
 import syntaxtree
+import statistics
 
 IDENTICAL_LIMIT = 0.0001
-SIMILARITY_LIMIT = 0.4
+# Limit of similarity expressed as a multiple of the standard deviation
+DEVIATION_MOD = 1.2
 
 class Person:
     def __init__(self, name):
@@ -44,14 +46,14 @@ class Person:
         self.others[other.name] = res
         return res
 
-    def get_summary(self):
+    def get_summary(self, stdev, mean):
         if self.manual_flag:
             return
         results = []
         for name in sorted(self.others, key=lambda x: self.others[x]):
             if self.others[name] < IDENTICAL_LIMIT:
                 print(f"{self.name} - {name} - in a group")
-            elif self.others[name] < SIMILARITY_LIMIT:
+            elif self.others[name] < (mean - (stdev * DEVIATION_MOD)):
                 results.append(f"{self.name} - {name} : {self.others[name]}")
         return results
 
@@ -90,8 +92,16 @@ if __name__ == "__main__":
                 continue
             similarity = names[name].compare_other(names[name2])
     results = {}
+
+    all_diff = []
+
+    for n in names:
+        all_diff.extend(names[n].others.values())
+    mean_all = statistics.mean(all_diff)
+    stdev_all = statistics.pstdev(all_diff)
+
     for name in names:
-        r = names[name].get_summary()
+        r = names[name].get_summary(stdev_all, mean_all)
         if r:
             results[name] = r
 
@@ -102,3 +112,5 @@ if __name__ == "__main__":
     for name in names:
         if names[name].manual_flag:
             print(f"{name} needs manual verification")
+
+    print(f"Mean: {mean_all}\nStdev: {stdev_all}")
