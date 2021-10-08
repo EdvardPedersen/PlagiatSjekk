@@ -29,7 +29,10 @@ class Person:
     def generate_ast(self):
         for f in self.files:
             try:
-                self.asts += syntaxtree.generate_ast_py(f)
+                if f[-3:] == ".py":
+                    self.asts += syntaxtree.generate_ast_py(f)
+                elif f[-2:] == ".c":
+                    self.asts += syntaxtree.generate_ast_clang(f)
             except Exception as e:
                 print(e)
                 self.manual_flag = True

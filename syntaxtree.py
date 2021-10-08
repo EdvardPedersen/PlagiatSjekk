@@ -32,6 +32,7 @@ class SyntaxTree:
                 g.add_edge(pydot.Edge(str(n["id"]), str(c["id"])))
                 walk(c, g)
         walk(self.root, graph)
+        print(graph.to_string())
         graph.write_png(filename)
 
     def generate_subgraphs(self, depth, min_entries):
@@ -122,13 +123,30 @@ def generate_ast_py(filename):
 
     return st
 
+def generate_ast_clang(filename):
+    import clang.cindex
+    i = clang.cindex.Index.create()
+    tu = i.parse(filename)
 
+
+    def walk(node, tree):
+        for n in node.get_children():
+            if(str(n.location.file) == filename):
+                tree.add_leaf(str(n.kind).replace("CursorKind.", ""))
+                walk(n, tree)
+                tree.up()
+
+    st = SyntaxTree(str(tu.cursor.kind).replace("CursorKind.", ""))
+
+    walk(tu.cursor, st)
+    return st
 
 
 if __name__ == "__main__":
-    mytree = generate_ast_py("plagi.py")
-    print(f"Similarity: {mytree.compare(mytree, 1, 2)}")
-    #mytree.generate_dot("test.png")
+    mytree = generate_ast_clang("test.c")
+    #mytree = generate_ast_py("plagi.py")
+    #print(f"Similarity: {mytree.compare(mytree, 1, 2)}")
+    mytree.generate_dot("test.png")
     res = mytree.generate_subgraphs(1, 2)
     for key in res:
         print(f"{key}: {res[key]}")
