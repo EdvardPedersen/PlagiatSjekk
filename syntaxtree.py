@@ -89,7 +89,14 @@ class SyntaxTree:
             else:
                 diff += abs(my_nodes[key] - other_nodes[key])
 
+        for key in other_nodes:
+            if key not in my_nodes:
+                diff += other_nodes[key]
+            else:
+                diff += abs(my_nodes[key] - other_nodes[key])
+
         total_subgraphs = sum([my_nodes[k] for k in my_nodes])
+        total_subgraphs += sum([other_nodes[k] for k in other_nodes])
         return (diff / total_subgraphs)
 
             
