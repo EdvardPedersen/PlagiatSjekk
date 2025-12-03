@@ -6,13 +6,15 @@ from collections import defaultdict
 import re
 import syntaxtree
 import statistics
+import argparse
+import random
 
 IDENTICAL_LIMIT = 0.0001
 # Limit of similarity expressed as a multiple of the standard deviation
-DEVIATION_MOD = 1.2
+DEVIATION_MOD = 1.7
 
 class Person:
-    def __init__(self, name):
+    def __init__(self, name, out_file = None):
         self.name = name
         self.files = []
         self.asts = syntaxtree.SyntaxTree("")
@@ -23,6 +25,7 @@ class Person:
         self.patterns.append(re.compile("'.*'"))
         self.patterns.append(re.compile("\".*\""))
         self.patterns.append(re.compile("n\=.*\)"))
+        self.out_file = out_file
 
     def add_file(self, filename):
         if "/venv/" not in filename and "MACOSX" not in filename:
@@ -55,21 +58,38 @@ class Person:
                 print(f"{self.name} - {name} - in a group")
             elif self.others[name] < (mean - (stdev * DEVIATION_MOD)):
                 results.append(f"{self.name} - {name} : {self.others[name]}")
+            if self.out_file:
+                self.out_file.write(f"{self.name}|{name}|{self.others[name]}\n")
         return results
 
 
 if __name__ == "__main__":
+    parse = argparse.ArgumentParser()
+    parse.add_argument('-f')
+    parse.add_argument('-a', action='store_true')
+    args = parse.parse_args()
+    f = None
+    if args.f:
+        f = open(args.f, 'w+')
+
     all_paths = []
     for line in sys.stdin:
         shortline = line.strip()
         all_paths.append(os.path.normpath(shortline))
 
+    real_names = {}
     names = {}
+    name_count = 0
     for path in sorted(all_paths):
         name = path.split("/")[0]
-        if name not in names:
-            names[name] = Person(name)
-        names[name].add_file(path)
+        if name not in real_names:
+            if args.a:
+                real_names[name] = name_count
+            else:
+                real_names[name] = name
+            names[real_names[name]] = Person(real_names[name], f)
+            name_count += 1
+        names[real_names[name]].add_file(path)
     print("Got all paths")
 
     num = 0
@@ -104,6 +124,7 @@ if __name__ == "__main__":
         r = names[name].get_summary(stdev_all, mean_all)
         if r:
             results[name] = r
+
 
     for result in results:
         for s in results[result]:

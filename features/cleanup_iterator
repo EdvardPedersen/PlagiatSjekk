@@ -1,0 +1,1 @@
+grep -zl "list_iterator_t.*void *.*while.*NULL.*destroy_object.*list_destroyiterator.*list_destroy" . -r -I

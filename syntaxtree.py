@@ -150,8 +150,8 @@ def generate_ast_clang(filename):
 
 
 if __name__ == "__main__":
-    #mytree = generate_ast_clang("test.c")
-    mytree = generate_ast_py("plagi.py")
+    mytree = generate_ast_clang("test.c")
+    #mytree = generate_ast_py("plagi.py")
     #print(f"Similarity: {mytree.compare(mytree, 1, 2)}")
     mytree.generate_dot("test_py.png")
     res = mytree.generate_subgraphs(1, 2)

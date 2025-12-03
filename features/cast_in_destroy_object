@@ -1,0 +1,1 @@
+grep "destroy_object((object_t" . -r -I | grep main.c
